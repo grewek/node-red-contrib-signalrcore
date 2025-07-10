@@ -47,7 +47,7 @@ module.exports = function (RED) {
       node.reconnectTimoutHandle = null;
       var connection = new signalR.HubConnectionBuilder()
         .withUrl(node.path)
-        .configureLogging(signalR.LogLevel.Information)
+        .configureLogging(signalR.LogLevel.Debug)
         .build();
       node.connection = connection; // keep for closing
       handleConnection(connection);
@@ -293,8 +293,11 @@ module.exports = function (RED) {
         if (nodeDone) nodeDone();
         return;
       }
-      connectionConfig.connection.send(methodName, ...payload);
-      if (nodeDone) nodeDone();
+      let replyPromise = connectionConfig.connection.invoke(methodName, ...payload);
+      replyPromise.then((replyData) => {
+      }).catch((err) => {
+        if (nodeDone) nodeDone();
+      })
     });
     node.on('close', function (done) {
       node.status({});
